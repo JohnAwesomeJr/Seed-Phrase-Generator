@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mouse Position Binary Generator</title>
+<style>
+  body {
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: Arial, sans-serif;
+    background-color: #f3f3f3;
+  }
+
+  .container {
+    max-width: 600px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  #binaryTextArea {
+    width: 100%;
+    height: 200px;
+    margin-bottom: 20px;
+    resize: none;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 16px;
+    font-family: 'Courier New', monospace;
+  }
+
+  #copyButton {
+    padding: 12px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 16px;
+    font-weight: bold;
+    outline: none;
+  }
+
+  #copyButton:hover {
+    background-color: #45a049;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h2 style="text-align: center; margin-bottom: 20px;">Binary Number Generator</h2>
+    <textarea id="binaryTextArea" readonly></textarea>
+    <button id="copyButton">Copy Binary</button>
+  </div>
+
+<script>
+  const binaryDigits = [];
+  let lockedDigits = [];
+  let lastMouseX = null;
+  let lastMouseY = null;
+
+  // Generate an array of 256 zeros
+  for (let i = 0; i < 256; i++) {
+    binaryDigits.push('0');
+    lockedDigits.push(false);
+  }
+
+  const binaryTextArea = document.getElementById('binaryTextArea');
+  const copyButton = document.getElementById('copyButton');
+
+  function updateBinaryTextArea() {
+    binaryTextArea.value = binaryDigits.join('');
+  }
+
+  function distance(x1, y1, x2, y2) {
+    return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+  }
+
+  document.addEventListener('mousemove', (event) => {
+    const mouseX = event.clientX;
+    const mouseY = event.clientY;
+
+    if (lastMouseX !== null && lastMouseY !== null) {
+      // Calculate distance traveled since last mouse move
+      const dist = distance(mouseX, mouseY, lastMouseX, lastMouseY);
+
+      if (dist > 20) { // Change the number only if mouse traveled more than 20 pixels
+        let digitToUpdate = null;
+
+        // Find a non-locked digit to update
+        for (let i = 0; i < 256; i++) {
+          if (!lockedDigits[i]) {
+            digitToUpdate = i;
+            break;
+          }
+        }
+
+        // If all digits are locked, do nothing
+        if (digitToUpdate !== null) {
+          // Toggle the digit between 0 and 1
+          binaryDigits[digitToUpdate] = binaryDigits[digitToUpdate] === '0' ? '1' : '0';
+
+          // Update the text area
+          updateBinaryTextArea();
+        }
+      }
+    }
+
+    // Update last mouse position
+    lastMouseX = mouseX;
+    lastMouseY = mouseY;
+  });
+
+  function lockDigit(digitIndex) {
+    lockedDigits[digitIndex] = true;
+  }
+
+  const timerDuration = 100; // 5 seconds for each digit
+  for (let i = 0; i < 256; i++) {
+    setTimeout(lockDigit, timerDuration * (i + 1), i);
+  }
+
+  // Update the text area initially
+  updateBinaryTextArea();
+
+  // Copy binary when the copy button is clicked
+  copyButton.addEventListener('click', () => {
+    binaryTextArea.select();
+    document.execCommand('copy');
+    alert('Binary copied to clipboard!');
+  });
+</script>
+</body>
+</html>
